@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专属表白 | 我的心意想告诉你</title>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 页面背景和整体布局 */
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 爱心动画容器 */
+        .heart-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 不影响按钮点击 */
+            z-index: 1;
+        }
+
+        /* 爱心样式 */
+        .heart {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ff416c;
+            transform: rotate(45deg);
+            animation: float 3s ease-in-out infinite;
+            opacity: 0;
+        }
+
+        /* 爱心左右半圆 */
+        .heart::before, .heart::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ff416c;
+            border-radius: 50%;
+        }
+
+        .heart::before {
+            top: -10px;
+            left: 0;
+        }
+
+        .heart::after {
+            top: 0;
+            left: -10px;
+        }
+
+        /* 爱心漂浮动画 */
+        @keyframes float {
+            0% {
+                transform: rotate(45deg) translateY(100vh) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: rotate(45deg) translateY(-20vh) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* 表白卡片样式 */
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px 60px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 2; /* 卡片在爱心上层 */
+        }
+
+        /* 标题样式 */
+        .card h1 {
+            color: #ff416c;
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 5px rgba(255, 65, 108, 0.3);
+        }
+
+        /* 文案样式 */
+        .card p {
+            color: #333;
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 40px;
+        }
+
+        /* 按钮容器 */
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        /* 按钮通用样式 */
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* 接受按钮 */
+        .accept-btn {
+            background: #ff416c;
+            color: white;
+        }
+
+        .accept-btn:hover {
+            background: #ff2d55;
+            transform: scale(1.05);
+        }
+
+        /* 拒绝按钮 */
+        .refuse-btn {
+            background: #e0e0e0;
+            color: #666;
+            position: relative; /* 用于JS移动 */
+        }
+
+        /* 成功提示框 */
+        .success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none; /* 默认隐藏 */
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            animation: pop 0.5s ease;
+        }
+
+        .modal-content h2 {
+            color: #ff416c;
+            margin-bottom: 20px;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 爱心动画容器 -->
+    <div class="heart-container"></div>
+
+    <!-- 表白卡片 -->
+    <div class="card">
+        <h1>✨ 我有话想对你说 ✨</h1>
+        <p>
+            遇见你的每一天都很美好<br>
+            想把所有温柔都给你<br>
+            你愿意做我的唯一吗？
+        </p>
+        <div class="btn-group">
+            <button class="btn accept-btn">我愿意 💖</button>
+            <button class="btn refuse-btn">再考虑考虑 🤔</button>
+        </div>
+    </div>
+
+    <!-- 成功提示框 -->
+    <div class="success-modal">
+        <div class="modal-content">
+            <h2>🎉 太好了！</h2>
+            <p>往后余生，都是你 💘</p>
+        </div>
+    </div>
+
+    <script>
+        // 1. 生成随机爱心动画
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            
+            // 随机位置（水平）
+            const left = Math.random() * 100;
+            heart.style.left = `${left}vw`;
+            
+            // 随机动画时长
+            const duration = Math.random() * 3 + 2; // 2-5秒
+            heart.style.animationDuration = `${duration}s`;
+            
+            // 随机大小
+            const scale = Math.random() * 0.8 + 0.5; // 0.5-1.3倍
+            heart.style.transform = `rotate(45deg) scale(${scale})`;
+            
+            document.querySelector('.heart-container').appendChild(heart);
+            
+            // 动画结束后移除爱心，避免内存占用
+            setTimeout(() => {
+                heart.remove();
+            }, duration * 1000);
+        }
+
+        // 每隔300ms生成一个爱心
+        setInterval(createHeart, 300);
+
+        // 2. 拒绝按钮躲猫猫效果
+        const refuseBtn = document.querySelector('.refuse-btn');
+        refuseBtn.addEventListener('mouseover', () => {
+            // 随机位置（相对于视口）
+            const maxX = window.innerWidth - refuseBtn.offsetWidth - 20;
+            const maxY = window.innerHeight - refuseBtn.offsetHeight - 20;
+            const randomX = Math.random() * maxX;
+            const randomY = Math.random() * maxY;
+            
+            // 设置按钮位置（绝对定位）
+            refuseBtn.style.position = 'absolute';
+            refuseBtn.style.left = `${randomX}px`;
+            refuseBtn.style.top = `${randomY}px`;
+        });
+
+        // 3. 接受按钮点击效果
+        const acceptBtn = document.querySelector('.accept-btn');
+        const successModal = document.querySelector('.success-modal');
+        acceptBtn.addEventListener('click', () => {
+            successModal.style.display = 'flex';
+            // 增加爱心生成频率
+            clearInterval(window.heartInterval); // 清除原有定时器
+            window.heartInterval = setInterval(createHeart, 100);
+        });
+    </script>
+</body>
+</html>
