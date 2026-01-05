@@ -107,6 +107,7 @@
             display: flex;
             gap: 20px;
             justify-content: center;
+            flex-wrap: wrap; /* 适配手机端按钮换行 */
         }
 
         /* 按钮通用样式 */
@@ -135,6 +136,17 @@
             background: #e0e0e0;
             color: #666;
             position: relative; /* 用于JS移动 */
+        }
+
+        /* 关闭音乐按钮（弹窗里） */
+        .close-music-btn {
+            margin-top: 20px;
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .close-music-btn:hover {
+            background: #d0d0d0;
         }
 
         /* 成功提示框 */
@@ -169,9 +181,21 @@
             80% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
+
+        /* 音频控件隐藏（仅后台播放） */
+        audio {
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <!-- 音频元素：本地音乐文件（关键修改处） -->
+    <audio id="bg-music" loop>
+        <!-- 核心：src改为你的本地音频文件名，必须和实际文件名完全一致 -->
+        <source src="love-music.mp3" type="audio/mpeg">
+        你的浏览器不支持音频播放，请升级浏览器~
+    </audio>
+
     <!-- 爱心动画容器 -->
     <div class="heart-container"></div>
 
@@ -194,10 +218,17 @@
         <div class="modal-content">
             <h2>🎉 太好了！</h2>
             <p>往后余生，都是你 💘</p>
+            <!-- 关闭音乐按钮 -->
+            <button class="btn close-music-btn">关闭音乐 🎵</button>
         </div>
     </div>
 
     <script>
+        // 获取音频元素
+        const bgMusic = document.getElementById('bg-music');
+        // 存储爱心定时器（全局）
+        let heartInterval = setInterval(createHeart, 300);
+
         // 1. 生成随机爱心动画
         function createHeart() {
             const heart = document.createElement('div');
@@ -223,9 +254,6 @@
             }, duration * 1000);
         }
 
-        // 每隔300ms生成一个爱心
-        setInterval(createHeart, 300);
-
         // 2. 拒绝按钮躲猫猫效果
         const refuseBtn = document.querySelector('.refuse-btn');
         refuseBtn.addEventListener('mouseover', () => {
@@ -241,14 +269,37 @@
             refuseBtn.style.top = `${randomY}px`;
         });
 
-        // 3. 接受按钮点击效果
+        // 3. 接受按钮点击效果（播放音乐+弹窗+爱心加速）
         const acceptBtn = document.querySelector('.accept-btn');
         const successModal = document.querySelector('.success-modal');
-        acceptBtn.addEventListener('click', () => {
+        acceptBtn.addEventListener('click', async () => {
             successModal.style.display = 'flex';
+            
+            // 播放背景音乐（解决浏览器自动播放限制）
+            try {
+                await bgMusic.play();
+            } catch (err) {
+                // 友好提示：引导用户允许音频
+                alert('💖 请允许浏览器播放音频，体验更棒哦～\n（点击浏览器地址栏左侧的🔒，开启声音权限）');
+                console.log('音频播放提示：', err);
+            }
+            
             // 增加爱心生成频率
-            clearInterval(window.heartInterval); // 清除原有定时器
-            window.heartInterval = setInterval(createHeart, 100);
+            clearInterval(heartInterval);
+            heartInterval = setInterval(createHeart, 100);
+        });
+
+        // 4. 关闭音乐按钮功能
+        const closeMusicBtn = document.querySelector('.close-music-btn');
+        closeMusicBtn.addEventListener('click', () => {
+            bgMusic.pause();
+            bgMusic.currentTime = 0; // 重置音乐到开头
+        });
+
+        // 页面卸载时清理资源，避免内存泄漏
+        window.addEventListener('beforeunload', () => {
+            bgMusic.pause();
+            clearInterval(heartInterval);
         });
     </script>
 </body>
